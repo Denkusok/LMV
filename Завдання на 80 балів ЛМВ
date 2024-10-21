@@ -1,0 +1,50 @@
+const int LED_PIN = 12;
+const int BUTTON_PIN = 2;
+
+bool ledState = false;
+bool buttonPressed = false;
+bool previousButtonState = false;
+
+void setup() {
+  pinMode(LED_PIN, OUTPUT);
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
+  Serial.begin(9600);
+}
+
+void switchLED() {
+  ledState = !ledState;
+  digitalWrite(LED_PIN, ledState);
+  Serial.println(ledState ? "LED is On" : "LED is Off");
+}
+
+void checkButton() {
+  buttonPressed = digitalRead(BUTTON_PIN) == LOW;
+  if (buttonPressed && !previousButtonState) {
+    switchLED();
+    Serial.println("(Control through button)");
+  }
+  previousButtonState = buttonPressed;
+}
+
+void checkSerial() {
+  if (Serial.available() > 0) {
+    String command = Serial.readStringUntil('\n');
+    command.trim();
+    command.toLowerCase();
+
+    if (command == "on" && !ledState) {
+      switchLED();
+      Serial.println("(Control through Serial)");
+    } else if (command == "off" && ledState) {
+      switchLED();
+      Serial.println("(Control through Serial)");
+    } else if (command != "on" && command != "off") {
+      Serial.println("Unknown command");
+    }
+  }
+}
+
+void loop() {
+  checkButton();
+  checkSerial();
+}
